@@ -3,6 +3,8 @@
 # Simple python script performing reselution method.
 
 import fileinput
+import getopt
+import sys
 from collections import deque
 
 
@@ -15,6 +17,12 @@ __date__    = "2011-02-25"
 NEG = '~'
 OR = '|'
 COMMENT = '#'
+
+# Globals
+verbose = False
+silent  = False
+fsubsum = False
+bsubsum = False
 
 # Clausule ====================================================================
 
@@ -222,27 +230,93 @@ def parse_line(line):
     clause = encode_clause(literals)
     return encode_clause(literals)
 
-def parse_file():
-    """Parse given file or standard input."""
-    clauses = set()
-    for line in fileinput.input():
-        # Remove eof
-        line = line[:-1]
-        # Only lines which are not empty and not comment
-        if len(line) > 0 and (not (line[0] == COMMENT)):
-            try:
-                clause = parse_line(line)
-            except Exception as info:
-                print "Warning: Error when parsing \"{0}\"".format(line), info
-                continue
-            clauses.add(clause)
-    return clauses
+def parse_file(stream, comment='#'):
+    """Parse input file."""
+    for line in stream:
+        # Remove end of line
+        if line[-1] == '\n':
+            line = line[:-1]
+        # Remove comments
+        try:
+            ind = line.index(comment)
+            line = line[:ind]
+        except:
+            pass
+        # Remove trainling whitespaces
+        line = line.strip(' ')
+        # Pass only if not empty
+        if len(line) > 0:
+            yield line
+
 
 # Main ========================================================================
 
-if __name__ == '__main__':
-    clauses = parse_file()
+help_message = """ [options] infile
+
+Options:
+    -h --help                   Show this message
+    -v --verbose                More output
+    -s --silent                 Less output
+    -f --forward-subsumption    Enable forward subsumption
+    -b --backward-subsumption   Enable backward subsumption
+"""
+
+class Usage(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+
+def main(argv=None):
+    global verbose, silent, fsubsum, bsubsum
+    if argv is None:
+        argv = sys.argv
+    try:
+        try:
+            opts, args = getopt.getopt(argv[1:], "hvsfb", ["help",
+                                                           "verbose",
+                                                           "silent",
+                                                           "forward-subsumption",
+                                                           "backward-subsumption"])
+        except getopt.error, msg:
+            raise Usage(msg)
+
+        if not len(args) == 1:
+            raise Usage("No input file specified!")
+        elif args[0] == "--":
+            infile = sys.stdin
+        else:
+            infile = open(args[0])
+
+        # option processing
+        for option, value in opts:
+            if option in ("-v", "--verbose"):
+                verbose = True
+            if option in ("-s", "--silent"):
+                silent = True
+            if option in ("-h", "--help"):
+                raise Usage(help_message)
+            if option in ("-f", "--forward-subsumption"):
+                fsubsum = True
+            if option in ("-b", "--backward-subsumption"):
+                bsubsum = True
+
+    except Usage, err:
+        print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
+        print >> sys.stderr, "\t for help use --help"
+        return 2
+
+    clauses = set()
+    for line in parse_file(infile):
+        try:
+            clause = parse_line(line)
+            clauses.add(clause)
+        except Exception as info:
+            print "Warning: Error when parsing \"{0}\"".format(line), info
+
     resolution = Resolution(clauses)
     resolution.infer_bfs()
     resolution.print_result()
 
+
+if __name__ == '__main__':
+    sys.exit(main())
