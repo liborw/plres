@@ -3,7 +3,14 @@ This project is part of the [A4M33AU][a4m33au] course on [Faculty of Electrical 
 
 ### Usage
 
-    plres.py input_file
+    plres.py:  [options] infile
+
+    Options:
+        -h --help                   Show this message
+        -v --verbose                More output
+        -s --silent                 Less output
+        -f --forward-subsumption    Enable forward subsumption
+        -b --backward-subsumption   Enable backward subsumption
 
 ### Input format
 The input must be in [Conjunctive Normal Form][cnf] one clause for line with three reserved symbols `~`, `|` and `#` for negation, disjunction and comment respectively.

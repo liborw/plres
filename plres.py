@@ -280,13 +280,6 @@ def main(argv=None):
         except getopt.error, msg:
             raise Usage(msg)
 
-        if not len(args) == 1:
-            raise Usage("No input file specified!")
-        elif args[0] == "--":
-            infile = sys.stdin
-        else:
-            infile = open(args[0])
-
         # option processing
         for option, value in opts:
             if option in ("-v", "--verbose"):
@@ -299,6 +292,13 @@ def main(argv=None):
                 fsubsum = True
             if option in ("-b", "--backward-subsumption"):
                 bsubsum = True
+
+        if not len(args) == 1:
+            raise Usage("No input file specified!")
+        elif args[0] == "--":
+            infile = sys.stdin
+        else:
+            infile = open(args[0])
 
     except Usage, err:
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
