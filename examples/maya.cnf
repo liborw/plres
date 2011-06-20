@@ -1,0 +1,16 @@
+# A claims that B tells truth and M is Maya
+# B claims that A tells lie and M is Maya
+# Formalised:
+#   A <=> (B & M)
+#   B <=> (~A & M)
+
+# CNF axioms:
+~a|b
+~a|m
+~b|~m|a
+~b|~a
+~b|m
+b|a|~m
+
+# Negation of conjecture (not Maya)
+m
